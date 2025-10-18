@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D Printed ABS Dielectric Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Predict Dielectric Properties</h1>
+
+        <div class="input-section">
+            <div class="row">
+                <label>Infill Density (%)</label>
+                <input type="text" id="densityValue" readonly value="50%">
+                <input type="range" id="infillDensity" min="50" max="100" value="50" oninput="updateDensity(this.value)">
+            </div>
+
+            <div class="row">
+                <label>Infill Pattern</label>
+                <input type="text" id="patternValue" readonly value="1">
+                <select id="infillPattern" onchange="updatePattern(this.value)">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <label>Printing Speed (mm/sec)</label>
+                <input type="text" id="speedValue" readonly value="20 mm/sec">
+                <input type="range" id="printingSpeed" min="20" max="60" value="20" oninput="updateSpeed(this.value)">
+            </div>
+
+            <div class="buttons">
+                <button onclick="predict()">Predict</button>
+                <button onclick="resetForm()">Reset</button>
+            </div>
+        </div>
+
+        <div id="output" class="output-section" style="display:none;">
+            <h2>📊 Predicted Results</h2>
+            <table>
+                <tr><th>Property</th><th>Value</th></tr>
+                <tr><td>Dielectric Constant</td><td id="dielectric"></td></tr>
+                <tr><td>Tan Delta</td><td id="tanDelta"></td></tr>
+                <tr><td>Q Factor</td><td id="qFactor"></td></tr>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function updateDensity(val) {
+            document.getElementById('densityValue').value = val + '%';
+        }
+        function updatePattern(val) {
+            document.getElementById('patternValue').value = val;
+        }
+        function updateSpeed(val) {
+            document.getElementById('speedValue').value = val + ' mm/sec';
+        }
+
+        async function predict() {
+            const data = {
+                infill_density: document.getElementById('infillDensity').value,
+                infill_pattern: document.getElementById('infillPattern').value,
+                printing_speed: document.getElementById('printingSpeed').value
+            };
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            document.getElementById('dielectric').innerText = result.dielectric_constant;
+            document.getElementById('tanDelta').innerText = result.tan_delta;
+            document.getElementById('qFactor').innerText = result.q_factor;
+            document.getElementById('output').style.display = 'block';
+        }
+
+        function resetForm() {
+            document.getElementById('infillDensity').value = 50;
+            document.getElementById('printingSpeed').value = 20;
+            document.getElementById('infillPattern').value = 1;
+            updateDensity(50);
+            updatePattern(1);
+            updateSpeed(20);
+            document.getElementById('output').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
